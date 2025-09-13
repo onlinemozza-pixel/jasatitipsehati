@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Jastip SEHATI - Belanja Online Mudah</title>
+    <style>
+        /* --- CSS Global & Header --- */
+        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; margin: 0; padding: 0; background-color: #f5f5f5; color: #333; }
+        .header { background-color: #ee4d2d; color: white; padding: 1.5rem; text-align: center; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
+        .container { width: 95%; max-width: 1200px; margin: 2rem auto; }
+        h1, h2 { color: #333; }
+
+        /* --- Navigasi Kategori & Pencarian --- */
+        .top-controls { background-color: #fff; padding: 1.2rem 1rem; border-radius: 8px; margin-bottom: 1.5rem; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); }
+        .category-nav { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin-bottom: 1rem; }
+        .category-btn { background-color: #f0f0f0; border: none; padding: 10px 25px; border-radius: 20px; cursor: pointer; font-size: 0.9rem; font-weight: 500; transition: background-color 0.3s, color 0.3s; }
+        .category-btn:hover, .category-btn.active { background-color: #ee4d2d; color: white; }
+        .search-bar { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 20px; box-sizing: border-box; font-size: 1rem; }
+
+        /* --- Grid Produk (Mirip Shopee) --- */
+        .product-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
+        @media (min-width: 768px) { .product-grid { grid-template-columns: repeat(4, 1fr); } }
+
+        .product-card { background-color: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1); transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; }
+        .product-card:hover { transform: translateY(-5px); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); }
+        .product-card-img { width: 100%; height: 180px; object-fit: cover; display: block; }
+        .product-card-body { padding: 1rem; }
+        .product-card-title { font-size: 1rem; font-weight: 600; margin: 0 0 0.5rem 0; color: #333; }
+        .product-card-price { font-size: 1.1rem; color: #fa0101; font-weight: 700; margin: 0; }
+
+        /* --- Tombol & Ikon Keranjang --- */
+        .add-to-cart-btn { background-color: #ee4d2d; color: white; border: none; padding: 8px 15px; border-radius: 5px; font-weight: 500; cursor: pointer; transition: background-color 0.3s; width: 100%; margin-top: 1rem; }
+        .add-to-cart-btn:hover { background-color: #d13d21; }
+
+        .whatsapp-request-btn { background-color: #25d366; color: white; border: none; padding: 12px 25px; border-radius: 50px; cursor: pointer; font-size: 1rem; font-weight: 600; transition: background-color 0.3s; display: inline-block; text-decoration: none; margin-top: 2rem; }
+        .whatsapp-request-btn:hover { background-color: #128c7e; }
+
+        .cart-icon { position: fixed; bottom: 30px; right: 30px; background-color: #34495e; color: white; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; cursor: pointer; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); z-index: 999; }
+        .cart-count { position: absolute; top: -5px; right: -5px; background-color: #e74c3c; color: white; border-radius: 50%; padding: 2px 6px; font-size: 0.7rem; font-weight: bold; display: none; }
+
+        /* --- Modal Keranjang --- */
+        .cart-modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); justify-content: center; align-items: center; }
+        .cart-content { background-color: #fefefe; padding: 2rem; border-radius: 10px; width: 95%; max-width: 500px; position: relative; }
+        .close-btn { position: absolute; top: 10px; right: 20px; font-size: 2rem; cursor: pointer; color: #aaa; }
+        .cart-item { display: flex; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee; }
+        .cart-item-info { flex-grow: 1; padding-left: 1rem; }
+        .total-price { font-size: 1.5rem; font-weight: bold; margin-top: 1rem; text-align: right; }
+        .checkout-btn { background-color: #20b402; color: white; padding: 12px 24px; border: none; border-radius: 5px; cursor: pointer; width: 100%; margin-top: 1rem; }
+
+        /* Tambahan CSS untuk input nama */
+        .input-group { margin-bottom: 1rem; }
+        .input-group label { display: block; margin-bottom: 5px; font-weight: 600; }
+        .input-group input { width: 95%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
+
+        /* kecilkan teks for empty messages */
+        .muted { color: #888; text-align: center; padding: 1rem 0; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Jasa Titipan SEHATI</h1>
+        <p>Pesan Belanjaan Lebih Hemat, Cukup Satu Keranjang Area Baubau,Makassar. Lokasi kami ada di EEMOKOLO KABAENA</p>
+    </div>
+
+    <div class="container">
+        <div class="top-controls">
+            <div class="category-nav">
+                <button class="category-btn active" data-category="all">Semua Produk</button>
+                <button class="category-btn" data-category="fashion">Fashion</button>
+                <button class="category-btn" data-category="elektronik">Elektronik</button>
+                <button class="category-btn" data-category="makanan">Makanan & Minuman</button>
+            </div>
+            <input type="text" id="product-search" class="search-bar" placeholder="Cari produk...">
+        </div>
+
+        <div id="product-list" class="product-grid">
+            <!-- Produk akan di-render di sini -->
+        </div>
+
+        <div style="text-align: center; margin-top: 3rem;">
+            <h3>Tidak Menemukan Barang yang Dicari?</h3>
+            <a id="wa-request" href="#" class="whatsapp-request-btn" target="_blank">Request Jastip Khusus</a>
+        </div>
+    </div>
+
+    <div class="cart-icon" id="cart-icon" title="Buka Keranjang">
+        🛒
+        <span id="cart-count" class="cart-count">0</span>
+    </div>
+
+    <div class="cart-modal" id="cart-modal" aria-hidden="true">
+        <div class="cart-content" role="dialog" aria-modal="true">
+            <span class="close-btn" id="close-btn">×</span>
+            <h2>Keranjang Belanja</h2>
+
+            <div class="input-group">
+                <label for="customer-name">Nama Anda:</label>
+                <input type="text" id="customer-name" placeholder="Masukkan nama Anda">
+            </div>
+
+            <div id="cart-items"></div>
+
+            <div class="total-price" id="total-price">Total: Rp 0</div>
+
+            <button class="checkout-btn" id="checkout-btn">Checkout via WhatsApp</button>
+        </div>
+    </div>
+
+    <script>
+        // ---- KONFIGURASI ----
+        // Ganti SCRIPT_URL jika memakai Apps Script berbeda
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxq7UnFdnDEFGVZGRJ5BlCIuNG_rHg7zcfEMlZDR5Mtx0K-oZ2rq7IA0rjyTHUh0p4b0w/exec';
+        // Nomor admin (format internasional tanpa +); contoh: 62812xxxx
+        const ADMIN_PHONE = '6282278320493';
+        // Link request jastip (ubah nomor atau teks sesuai kebutuhan)
+        document.getElementById('wa-request').href = `https://wa.me/${ADMIN_PHONE}?text=${encodeURIComponent('Halo Admin, saya ingin request jasa titip untuk barang yang tidak ada di katalog.')}`;
+
+        // ---- STATE ----
+        let products = []; // akan diisi dari fetchProducts()
+        let cart = [];
+        let currentCategory = 'all';
+
+        // ---- FETCH PRODUK (dari Google Apps Script / endpoint JSON) ----
+        async function fetchProducts() {
+            try {
+                const res = await fetch(SCRIPT_URL);
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                const data = await res.json();
+                // Pastikan tiap produk minimal ada: id, name, price, image, category
+                products = Array.isArray(data) ? data.map((p, idx) => ({
+                    id: p.id !== undefined ? p.id : (idx + 1),
+                    name: p.name || p.nama || 'Produk',
+                    price: Number(p.price ?? p.harga ?? 0),
+                    image: p.image || p.gambar || 'https://via.placeholder.com/400x300?text=No+Image',
+                    category: p.category || p.kategori || 'lain'
+                })) : [];
+                renderProducts();
+            } catch (err) {
+                console.error('Gagal mengambil produk:', err);
+                const productList = document.getElementById('product-list');
+                productList.innerHTML = '<p class="muted">Gagal memuat produk. Silakan coba lagi nanti.</p>';
+            }
+        }
+
+        // ---- RENDER PRODUK ----
+        function renderProducts() {
+            const productList = document.getElementById('product-list');
+            productList.innerHTML = '';
+            const searchTerm = document.getElementById('product-search').value.toLowerCase().trim();
+
+            let filtered = products.slice();
+            if (currentCategory !== 'all') filtered = filtered.filter(p => p.category === currentCategory);
+            if (searchTerm) filtered = filtered.filter(p => p.name.toLowerCase().includes(searchTerm));
+
+            if (filtered.length === 0) {
+                productList.innerHTML = '<p class="muted">Tidak ada produk yang ditemukan.</p>';
+                return;
+            }
+
+            filtered.forEach(product => {
+                const card = document.createElement('div');
+                card.className = 'product-card';
+                // sanitize values minimally
+                const name = escapeHtml(String(product.name));
+                const price = Number(product.price) || 0;
+                const image = escapeHtml(String(product.image));
+                const id = product.id;
+
+                card.innerHTML = `
+                    <img src="${image}" alt="${name}" class="product-card-img" loading="lazy">
+                    <div class="product-card-body">
+                        <p class="product-card-title">${name}</p>
+                        <p class="product-card-price">Rp ${price.toLocaleString('id-ID')}</p>
+                        <button class="add-to-cart-btn" data-id="${id}">+ Keranjang</button>
+                    </div>
+                `;
+                productList.appendChild(card);
+            });
+        }
+
+        // ---- HELPERS ----
+        function escapeHtml(str) {
+            return str.replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[s]);
+        }
+
+        // ---- KERANJANG ----
+        function updateCart() {
+            const cartItems = document.getElementById('cart-items');
+            const cartCount = document.getElementById('cart-count');
+            const totalPriceEl = document.getElementById('total-price');
+
+            cartItems.innerHTML = '';
+            if (cart.length === 0) {
+                cartItems.innerHTML = '<p class="muted">Keranjang belanja Anda kosong.</p>';
+            } else {
+                cart.forEach((it, idx) => {
+                    const itemDiv = document.createElement('div');
+                    itemDiv.className = 'cart-item';
+                    itemDiv.innerHTML = `
+                        <div style="display:flex;align-items:center;width:100%;">
+                            <img src="${escapeHtml(it.image)}" alt="${escapeHtml(it.name)}" style="width:50px;height:50px;object-fit:cover;border-radius:5px;">
+                            <div style="flex-grow:1;padding-left:10px;">
+                                <strong>${escapeHtml(it.name)}</strong><br>
+                                <span>Rp ${Number(it.price).toLocaleString('id-ID')}</span>
+                            </div>
+                            <div>
+                                <button data-idx="${idx}" class="remove-item-btn" style="background:none;border:none;cursor:pointer;color:#e74c3c;font-weight:bold;">Hapus</button>
+                            </div>
+                        </div>
+                    `;
+                    cartItems.appendChild(itemDiv);
+                });
+            }
+
+            const total = cart.reduce((s, i) => s + Number(i.price || 0), 0);
+            totalPriceEl.textContent = `Total: Rp ${total.toLocaleString('id-ID')}`;
+
+            cartCount.textContent = cart.length;
+            cartCount.style.display = cart.length > 0 ? 'block' : 'none';
+        }
+
+        // ---- EVENT LISTENERS: kategori & pencarian ----
+        document.querySelectorAll('.category-btn').forEach(btn => {
+            btn.addEventListener('click', e => {
+                document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+                e.currentTarget.classList.add('active');
+                currentCategory = e.currentTarget.dataset.category || 'all';
+                renderProducts();
+            });
+        });
+
+        document.getElementById('product-search').addEventListener('input', () => renderProducts());
+
+        // ---- EVENT DELEGATION untuk tombol tambah ke keranjang & hapus ----
+        document.addEventListener('click', (e) => {
+            // tombol tambah
+            if (e.target.classList.contains('add-to-cart-btn')) {
+                const id = e.target.dataset.id;
+                // temukan produk
+                const prod = products.find(p => String(p.id) === String(id));
+                if (prod) {
+                    cart.push({...prod});
+                    updateCart();
+                    // kecil notifikasi
+                    if (typeof window.navigator.vibrate === 'function') {
+                        try { navigator.vibrate(50); } catch(e) {}
+                    }
+                    alert(`${prod.name} berhasil ditambahkan ke keranjang!`);
+                }
+            }
+
+            // hapus item di keranjang
+            if (e.target.classList.contains('remove-item-btn')) {
+                const idx = Number(e.target.dataset.idx);
+                if (!isNaN(idx) && idx >= 0 && idx < cart.length) {
+                    cart.splice(idx, 1);
+                    updateCart();
+                }
+            }
+        });
+
+        // ---- Modal keranjang open/close ----
+        const cartIcon = document.getElementById('cart-icon');
+        const cartModal = document.getElementById('cart-modal');
+        const closeBtn = document.getElementById('close-btn');
+        cartIcon.addEventListener('click', () => {
+            cartModal.style.display = 'flex';
+            cartModal.setAttribute('aria-hidden', 'false');
+        });
+        closeBtn.addEventListener('click', () => {
+            cartModal.style.display = 'none';
+            cartModal.setAttribute('aria-hidden', 'true');
+        });
+        // close modal when clicking outside content
+        cartModal.addEventListener('click', (e) => {
+            if (e.target === cartModal) {
+                cartModal.style.display = 'none';
+                cartModal.setAttribute('aria-hidden', 'true');
+            }
+        });
+
+        // ---- CHECKOUT: ambil geolocation -> kirim WA & kirim ke Google Sheets ----
+        const checkoutBtn = document.getElementById('checkout-btn');
+        checkoutBtn.addEventListener('click', async () => {
+            const customerName = document.getElementById('customer-name').value.trim();
+            if (!customerName) { alert('Nama Anda harus diisi.'); return; }
+            if (cart.length === 0) { alert('Keranjang belanja Anda kosong.'); return; }
+
+            // fungsi untuk proses setelah (atau tanpa) lokasi
+            const processOrder = async (lat, lon) => {
+                sendWhatsAppMessage(customerName, lat, lon);
+                await sendToGoogleSheets(customerName, lat, lon);
+                // setelah checkout, kosongkan keranjang & tutup modal
+                cart = [];
+                updateCart();
+                cartModal.style.display = 'none';
+                cartModal.setAttribute('aria-hidden', 'true');
+            };
+
+            // minta permission geolocation (HTTPS diperlukan)
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    pos => processOrder(pos.coords.latitude, pos.coords.longitude),
+                    err => {
+                        console.warn('Lokasi tidak tersedia atau ditolak:', err && err.message);
+                        // tetap proses tanpa lokasi
+                        processOrder(null, null);
+                    },
+                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                );
+            } else {
+                console.warn('Geolocation tidak didukung oleh browser.');
+                processOrder(null, null);
+            }
+        });
+
+        // kirim pesan ke WhatsApp
+        function sendWhatsAppMessage(customerName, lat, lon) {
+            const total = cart.reduce((s, i) => s + Number(i.price || 0), 0);
+            const itemsText = cart.map(i => `• ${i.name} - Rp ${Number(i.price).toLocaleString('id-ID')}`).join('\n');
+
+            let message = `Halo Admin, saya *${customerName}* ingin memesan:\n\n${itemsText}\n\n*Total:* Rp ${total.toLocaleString('id-ID')}`;
+
+            if (lat != null && lon != null) {
+                // gunakan format maps yang mudah diklik
+                message += `\n\n📍 Lokasi Pelanggan:\nhttps://www.google.com/maps/search/?api=1&query=${lat},${lon}`;
+            } else {
+                message += `\n\n📍 Lokasi tidak terdeteksi. Mohon kirimkan lokasi Anda secara manual.`;
+            }
+
+            const waUrl = `https://wa.me/${ADMIN_PHONE}?text=${encodeURIComponent(message)}`;
+            // buka di tab baru
+            window.open(waUrl, '_blank');
+        }
+
+        // kirim data ke Google Sheets / Apps Script
+        async function sendToGoogleSheets(customerName, lat, lon) {
+            const total = cart.reduce((s, i) => s + Number(i.price || 0), 0);
+            const items = cart.map(i => `${i.name} (Rp ${Number(i.price).toLocaleString('id-ID')})`).join(' | ');
+            const payload = {
+                timestamp: new Date().toLocaleString('id-ID'),
+                nama: customerName,
+                pesanan: items,
+                total: total,
+                lokasi: lat != null && lon != null ? `${lat}, ${lon}` : 'Tidak terdeteksi'
+            };
+
+            try {
+                const res = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                // jika script Anda mengembalikan JSON, bisa diproses
+                if (res.ok) {
+                    try {
+                        const json = await res.json();
+                        console.log('Response Sheets:', json);
+                    } catch (e) {
+                        console.log('Data terkirim ke Sheets (tidak ada JSON kembali).');
+                    }
+                } else {
+                    console.warn('Gagal mengirim ke Sheets. Status:', res.status);
+                }
+            } catch (err) {
+                console.error('Error saat mengirim ke Sheets:', err);
+            }
+        }
+
+        // ---- INIT ----
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchProducts();
+            updateCart();
+        });
+    </script>
+</body>
+</html>
